@@ -1,4 +1,5 @@
 plugins {
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("java")
 }
 
@@ -10,13 +11,21 @@ repositories {
 }
 
 dependencies {
-    implementation("com.intellij:forms_rt:7.0.3")
-    implementation("com.github.weisj:darklaf-core:3.0.2")
+    shadow(implementation("com.intellij:forms_rt:7.0.3")!!)
+    shadow(implementation("com.github.weisj:darklaf-core:3.0.2")!!)
 
-    implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))
+    shadow(implementation(platform("org.lwjgl:lwjgl-bom:3.3.2"))!!)
 
-    implementation("org.lwjgl", "lwjgl")
-    implementation("org.lwjgl", "lwjgl-nfd")
-    runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows")
-    runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows")
+    shadow(implementation("org.lwjgl", "lwjgl"))
+    shadow(implementation("org.lwjgl", "lwjgl-nfd"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl", classifier = "natives-windows"))
+    shadow(runtimeOnly("org.lwjgl", "lwjgl-nfd", classifier = "natives-windows"))
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "me.hydos.flatutils.Main"
+    }
 }

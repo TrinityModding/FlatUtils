@@ -56,7 +56,7 @@ public class Main {
         var extension = fileName.substring(fileName.lastIndexOf(".") + 1);
 
         QUEUE.add(() -> {
-            if (extension.equals("json") || extension.equals("json5")) handleJson(path, fileName);
+            if (extension.equals("json") || extension.equals("json5")) handleJson(path);
             else handleBinary(path, fileName, extension);
         });
     }
@@ -82,8 +82,32 @@ public class Main {
         }
     }
 
-    private static void handleJson(Path path, String fileName) {
-        System.out.println("handle " + fileName);
+    private static void handleJson(Path path) {
+        try {
+            var schema = locateSchema();
+            var proc = new ProcessBuilder("flatc", "-b", schema.toAbsolutePath().toString(), path.toAbsolutePath().toString())
+                    .directory(path.getParent().toFile())
+                    .inheritIO()
+                    .start();
+
+            while (proc.isAlive()) Thread.sleep(50);
+            System.out.println("Done");
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Path locateSchema() {
+        try (var stack = MemoryStack.stackPush()) {
+            var filters = NFDFilterItem.malloc(1);
+            filters.get(0)
+                    .name(stack.UTF8("Flatbuffer Schema"))
+                    .spec(stack.UTF8("fbs"));
+
+            var pp = stack.mallocPointer(1);
+            checkResult(NativeFileDialog.NFD_OpenDialog(pp, filters, stack.UTF8(Paths.get("").toAbsolutePath().toString())), pp);
+            return Paths.get(pp.getStringUTF8(0));
+        }
     }
 
     private static String saveFile(String defaultName) {
